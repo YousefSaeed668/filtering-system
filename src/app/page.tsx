@@ -23,6 +23,12 @@ import { ChevronDown, Filter } from "lucide-react";
 import { useCallback, useState } from "react";
 import debounce from "lodash.debounce";
 import EmptyState from "@/components/Products/EmptyState";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 // npm i -D @types/lodash.debounce To Solve Type Script Error
 const SORT_OPTIONS = [
   { name: "None", value: "none" },
@@ -158,9 +164,204 @@ export default function Home() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <button className="-m-2 ml-4 text-gray-400 hover:text-gray-500 sm:ml-6 lg:hidden">
-            <Filter className="h-5 w-5" />
-          </button>
+          <Sheet>
+            <SheetTrigger>
+              <button className="-m-2 ml-4 text-gray-400 hover:text-gray-500 sm:ml-6 lg:hidden">
+                <Filter className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader className="font-bold text-lg pt-6">
+                Products Filter
+              </SheetHeader>
+              <div className="pt-8">
+                <ul className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
+                  {SUBCATEGORIES.map((category) => (
+                    <li key={category.name}>
+                      <button
+                        disabled={!category.selected}
+                        className="disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {category.name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <Accordion type="multiple" className="animate-none">
+                  {/* Color Filter */}
+                  <AccordionItem value="color">
+                    <AccordionTrigger className="py-3 text-sm text-gray-400 hover:text-gray-500">
+                      <span className="font-medium text-gray-900">Color</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-6 animate-none">
+                      <ul className="space-y-4">
+                        {COLOR_FILTERS.options.map((option, optionIdx) => (
+                          <li key={option.value} className="flex items-center ">
+                            <input
+                              type="checkbox"
+                              id={`color-${optionIdx}`}
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={filter.color.includes(option.value)}
+                              onChange={() => {
+                                applyArrayFilter({
+                                  category: "color",
+                                  value: option.value,
+                                });
+                              }}
+                            />
+                            <label
+                              htmlFor={`color-${optionIdx}`}
+                              className="ml-3 text-sm text-gray-600"
+                            >
+                              {option.label}
+                            </label>
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                  {/* Size Filters */}
+                  <AccordionItem value="size">
+                    <AccordionTrigger className="py-3 text-sm text-gray-400 hover:text-gray-500">
+                      <span className="font-medium text-gray-900">Size</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-6 animate-none">
+                      <ul className="space-y-4">
+                        {SIZE_FILTERS.options.map((option, optionIdx) => (
+                          <li key={option.value} className="flex items-center ">
+                            <input
+                              type="checkbox"
+                              id={`size-${optionIdx}`}
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={filter.size.includes(option.value)}
+                              onChange={() => {
+                                applyArrayFilter({
+                                  category: "size",
+                                  value: option.value,
+                                });
+                              }}
+                            />
+                            <label
+                              htmlFor={`size-${optionIdx}`}
+                              className="ml-3 text-sm text-gray-600"
+                            >
+                              {option.label}
+                            </label>
+                          </li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                  {/* Price Filter */}
+                  <AccordionItem value="price">
+                    <AccordionTrigger className="py-3 text-sm text-gray-400 hover:text-gray-500">
+                      <span className="font-medium text-gray-900">Price</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-6 animate-none">
+                      <ul className="space-y-4">
+                        {PRICE_FILTERS.options.map((option, optionIdx) => (
+                          <li key={option.label} className="flex items-center ">
+                            <input
+                              type="radio"
+                              id={`price-${optionIdx}`}
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={
+                                !filter.price.isCustom &&
+                                filter.price.range[0] === option.value[0] &&
+                                filter.price.range[1] === option.value[1]
+                              }
+                              onChange={() => {
+                                setFilter((prev) => ({
+                                  ...prev,
+                                  price: {
+                                    isCustom: false,
+                                    range: [...option.value],
+                                  },
+                                }));
+
+                                _debouncedSubmit();
+                              }}
+                            />
+                            <label
+                              htmlFor={`price-${optionIdx}`}
+                              className="ml-3 text-sm text-gray-600"
+                            >
+                              {option.label}
+                            </label>
+                          </li>
+                        ))}
+                        <li className="flex justify-center flex-col gap-2">
+                          <div>
+                            <input
+                              type="radio"
+                              id={`price-${PRICE_FILTERS.options.length}`}
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              checked={filter.price.isCustom}
+                              onChange={() => {
+                                setFilter((prev) => ({
+                                  ...prev,
+                                  price: {
+                                    isCustom: true,
+                                    range: [0, 100],
+                                  },
+                                }));
+                              }}
+                            />
+                            <label
+                              htmlFor={`price-${PRICE_FILTERS.options.length}`}
+                              className="ml-3 text-sm text-gray-600"
+                            >
+                              Custom
+                            </label>
+                          </div>
+                          <div className="flex justify-between">
+                            <p className="font-medium">Price</p>
+                            <div>
+                              {filter.price.isCustom
+                                ? minPrice.toFixed(0)
+                                : filter.price.range[0].toFixed(0)}{" "}
+                              $ -{" "}
+                              {filter.price.isCustom
+                                ? maxPrice.toFixed(0)
+                                : filter.price.range[1].toFixed(0)}{" "}
+                              $
+                            </div>
+                          </div>
+                          <Slider
+                            min={DEFAULT_CUSTOM_PRICE[0]}
+                            defaultValue={DEFAULT_CUSTOM_PRICE}
+                            max={DEFAULT_CUSTOM_PRICE[1]}
+                            onValueChange={(range) => {
+                              const [newMin, newMax] = range;
+                              setFilter((prev) => ({
+                                ...prev,
+                                price: {
+                                  isCustom: true,
+                                  range: [newMin, newMax],
+                                },
+                              }));
+                              _debouncedSubmit();
+                            }}
+                            step={5}
+                            value={
+                              filter.price.isCustom
+                                ? filter.price.range
+                                : DEFAULT_CUSTOM_PRICE
+                            }
+                            disabled={!filter.price.isCustom}
+                            className={cn({
+                              "opacity-50": !filter.price.isCustom,
+                            })}
+                          />
+                          {/* To Make Slider Have Two Thumb Dublicate the SliderPrimitive.Thumb In Slider Component and it will appear after pass two number in array like this*/}
+                        </li>
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
       <section className="pb-24 pt-6">
